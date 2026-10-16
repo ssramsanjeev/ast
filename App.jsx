@@ -194,7 +194,7 @@ function App() {
               
               <div className="diagram-grid" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '15px' }}>
                 <div style={{ flex: 1, minWidth: '280px', textAlign: 'center' }}>
-                  <img src="/asterion_system.png" alt="ASTERION System Architecture" style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+                  <img src="asterion_system.png" alt="ASTERION System Architecture" style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
                   <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '6px' }}><strong>Fig 1:</strong> Complete ASTERION Data Flow Architecture</p>
                 </div>
                 <div style={{ flex: 1, minWidth: '280px', textAlign: 'center' }}>
