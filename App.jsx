@@ -57,11 +57,13 @@ function App() {
     formData.append('output_threshold', outputThreshold);
 
     setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/process-image', {
-        method: 'POST',
-        body: formData,
-      });
+    const response = await fetch(
+  `${import.meta.env.VITE_API_URL}/process-image`,
+  {
+    method: 'POST',
+    body: formData,
+  }
+);
 
       const data = await response.json();
       if (response.ok) {
