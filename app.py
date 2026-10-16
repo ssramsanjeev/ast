@@ -1,12 +1,41 @@
 
+import os
 import base64
+
 import cv2
 import numpy as np
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+
+# Allow requests from your deployed frontend.
+# For production, set FRONTEND_URL in Render to your Vercel URL.
+frontend_url = os.environ.get("FRONTEND_URL")
+
+if frontend_url:
+    CORS(app, resources={
+        r"/*": {"origins": [frontend_url]}
+    })
+else:
+    CORS(app)
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "status": "online",
+        "service": "ASTERION Image Processing API",
+        "endpoints": {
+            "health": "/health",
+            "process_image": "POST /process-image"
+        }
+    })
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "healthy"})
 
 
 def top(i, f, threshold):
@@ -30,9 +59,14 @@ def top(i, f, threshold):
 @app.route("/process-image", methods=["POST"])
 def process_image():
     if "image" not in request.files:
-        return jsonify({"error": "No image uploaded"}), 400
+        return jsonify({
+            "error": "No image uploaded. Send the file using the 'image' field."
+        }), 400
 
     file = request.files["image"]
+
+    if not file.filename:
+        return jsonify({"error": "No file selected"}), 400
 
     file_bytes = np.frombuffer(file.read(), np.uint8)
     image = cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
@@ -40,7 +74,6 @@ def process_image():
     if image is None:
         return jsonify({"error": "Could not decode image"}), 400
 
-    # Retrieve configurable parameters
     try:
         thresh1 = float(request.form.get("thresh1", 35))
         thresh2 = float(request.form.get("thresh2", 70))
@@ -53,12 +86,16 @@ def process_image():
             request.form.get("output_threshold", 2047)
         )
 
-    except ValueError:
+    except (ValueError, TypeError):
         return jsonify({
             "error": "Invalid parameter types provided"
         }), 400
 
-    # Validate parameters
+    if not np.isfinite(thresh1) or not np.isfinite(thresh2):
+        return jsonify({
+            "error": "Thresholds must be finite numbers"
+        }), 400
+
     if thresh1 >= thresh2:
         return jsonify({
             "error": "thresh1 must be less than thresh2"
@@ -74,11 +111,11 @@ def process_image():
             "error": "Frame values must be between 0 and 255"
         }), 400
 
-    # Resize image and calculate sigma
+    # Resize and calculate image intensity standard deviation.
     image = cv2.resize(image, (256, 256))
     sigma = float(np.std(image.astype(np.float64)))
 
-    # Select frame based on sigma
+    # Select the adaptive frame.
     if sigma < thresh1:
         Frame = frame1
     elif sigma < thresh2:
@@ -86,7 +123,7 @@ def process_image():
     else:
         Frame = frame3
 
-    # Run ASTERION multiplier logic
+    # Run ASTERION processing.
     output8 = np.zeros((256, 256), dtype=np.uint8)
 
     for row in range(256):
@@ -97,7 +134,7 @@ def process_image():
                 output_threshold
             )
 
-    # Encode processed image as base64
+    # Encode output image as PNG and Base64.
     success, buffer = cv2.imencode(".png", output8)
 
     if not success:
@@ -105,9 +142,10 @@ def process_image():
             "error": "Could not encode processed image"
         }), 500
 
-    processed_base64 = base64.b64encode(buffer).decode("utf-8")
+    processed_base64 = base64.b64encode(
+        buffer.tobytes()
+    ).decode("utf-8")
 
-    # Return processed image and parameters
     return jsonify({
         "sigma": sigma,
         "frame": Frame,
@@ -130,3 +168,4 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         debug=False
     )
+
