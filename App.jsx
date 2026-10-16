@@ -57,13 +57,19 @@ function App() {
     formData.append('output_threshold', outputThreshold);
 
     setLoading(true);
-    const response = await fetch(
+   const response = await fetch(
   `${import.meta.env.VITE_API_URL}/process-image`,
   {
     method: 'POST',
     body: formData,
   }
 );
+
+if (!response.ok) {
+  throw new Error(`Image processing failed: ${response.status}`);
+}
+
+const result = await response.json();
 
       const data = await response.json();
       if (response.ok) {
