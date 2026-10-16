@@ -69,23 +69,31 @@ if (!response.ok) {
   throw new Error(`Image processing failed: ${response.status}`);
 }
 
-const result = await response.json();
-
-      const data = await response.json();
-      if (response.ok) {
-        setProcessedImage(`data:image/png;base64,${data.processed_image}`);
-        setSigma(data.sigma);
-        setFrame(data.frame);
-      } else {
-        alert(data.error || 'Something went wrong');
-      }
-    } catch (err) {
-      console.error('Error connecting to backend:', err);
-      alert('Failed to connect to the backend server.');
-    } finally {
-      setLoading(false);
+try {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/process-image`,
+    {
+      method: 'POST',
+      body: formData,
     }
-  };
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Image processing failed: ${response.status}`);
+  }
+
+  setProcessedImage(`data:image/png;base64,${data.processed_image}`);
+  setSigma(data.sigma);
+  setFrame(data.frame);
+
+} catch (err) {
+  console.error('Error connecting to backend:', err);
+  alert(err.message || 'Failed to connect to the backend server.');
+} finally {
+  setLoading(false);
+}
 
   return (
     <div className="doc-container">
