@@ -351,7 +351,7 @@ FPGA and ASIC image processing applications.
             {/* 4. Complete Synthesis & Hardware Metrics */}
             <div className="doc-card" style={{ marginBottom: '20px' }}>
               <h3>4. Hardware Synthesis & Performance Metrics</h3>
-              <p>Detailed comparison table summarizing FPGA (Artix-7 AC701) and ASIC (Cadence GPDK 90nm slow corner) results:</p>
+              <p>Detailed comparison table summarizing FPGA (Artix-7 AC701) and ASIC (Cadence GPDK 90nm slow corner) results : </p>
               
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '0.85rem' }}>
