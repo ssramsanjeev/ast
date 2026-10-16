@@ -12,19 +12,30 @@ function App() {
   const [frame, setFrame] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const DEFAULTS = { thresh1: 35, thresh2: 70, frame1: 31, frame2: 58, frame3: 87, outputThreshold: 2047 };
+  const DEFAULTS = {
+    thresh1: 35,
+    thresh2: 70,
+    frame1: 31,
+    frame2: 58,
+    frame3: 87,
+    outputThreshold: 2047,
+  };
+
   const [thresh1, setThresh1] = useState(DEFAULTS.thresh1);
   const [thresh2, setThresh2] = useState(DEFAULTS.thresh2);
   const [frame1, setFrame1] = useState(DEFAULTS.frame1);
   const [frame2, setFrame2] = useState(DEFAULTS.frame2);
   const [frame3, setFrame3] = useState(DEFAULTS.frame3);
-  const [outputThreshold, setOutputThreshold] = useState(DEFAULTS.outputThreshold);
+  const [outputThreshold, setOutputThreshold] = useState(
+    DEFAULTS.outputThreshold
+  );
 
   // Codebase Sub-tab state
   const [codeSubTab, setCodeSubTab] = useState('python');
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       setImageFile(file);
       setPreview(URL.createObjectURL(file));
@@ -43,8 +54,10 @@ function App() {
     setOutputThreshold(DEFAULTS.outputThreshold);
   };
 
+  // Corrected image-processing handler
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!imageFile) return;
 
     const formData = new FormData();
@@ -57,43 +70,34 @@ function App() {
     formData.append('output_threshold', outputThreshold);
 
     setLoading(true);
-   const response = await fetch(
-  `${import.meta.env.VITE_API_URL}/process-image`,
-  {
-    method: 'POST',
-    body: formData,
-  }
-);
 
-if (!response.ok) {
-  throw new Error(`Image processing failed: ${response.status}`);
-}
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/process-image`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-try {
-  const response = await fetch(
-    `${import.meta.env.VITE_API_URL}/process-image`,
-    {
-      method: 'POST',
-      body: formData,
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || `Image processing failed: ${response.status}`
+        );
+      }
+
+      setProcessedImage(`data:image/png;base64,${data.processed_image}`);
+      setSigma(data.sigma);
+      setFrame(data.frame);
+    } catch (err) {
+      console.error('Error processing image:', err);
+      alert(err.message || 'Failed to connect to the backend server.');
+    } finally {
+      setLoading(false);
     }
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || `Image processing failed: ${response.status}`);
-  }
-
-  setProcessedImage(`data:image/png;base64,${data.processed_image}`);
-  setSigma(data.sigma);
-  setFrame(data.frame);
-
-} catch (err) {
-  console.error('Error connecting to backend:', err);
-  alert(err.message || 'Failed to connect to the backend server.');
-} finally {
-  setLoading(false);
-}
+  };
 
   return (
     <div className="doc-container">
