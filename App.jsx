@@ -132,7 +132,7 @@ function App() {
         {activeTab === 'dashboard' && (
           <div className="section-view">
             <h2>Interactive Dashboard</h2>
-            <p className="section-desc">Upload a grayscale image to evaluate its standard deviation and execute the ASTERION algorithm.</p>
+            <p className="section-desc">Upload an image to evaluate its standard deviation and execute the ASTERION algorithm.</p>
             
             <form onSubmit={handleSubmit}>
               <div className="file-input-group">
